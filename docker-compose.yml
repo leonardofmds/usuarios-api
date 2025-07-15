@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: usuariosapi-db
+    environment:
+      POSTGRES_DB: usuariosapi_db
+      POSTGRES_USER: usuariosapi_user
+      POSTGRES_PASSWORD: usuariosapi_pass
+    ports:
+      - "5436:5432"
+    volumes:
+      - usuariosapi_postgres_data:/var/lib/postgresql/data
+    networks:
+      - usuariosapi-network
+volumes:
+  usuariosapi_postgres_data:
+networks:
+  usuariosapi-network:
+    driver: bridge
