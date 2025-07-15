@@ -1,0 +1,86 @@
+name: Pipeline para Deploy da aplicação no AWS
+
+on:
+   push:
+     branches:
+        - main
+   pull_request:
+     branches:
+        - main
+
+jobs:
+
+    build:
+       name: Compilação
+       runs-on: ubuntu-22.04
+       steps:
+          - name: Checkout do código
+            uses: actions/checkout@v2
+
+          - name: Configuração do JDK 21
+            uses: actions/setup-java@v2
+            with:
+                java-version: "21"
+                distribution: "temurin"
+
+          - name: Compilar o projeto com o Maven
+            run: mvn clean package -DskipTests
+
+          - name: Pegar os arquivos da pasta target
+            run: ls -la target
+
+          - name: Gerando o arquivo JAR compilado do projeto
+            uses: actions/upload-artifact@v4
+            with:
+                name: jar-file
+                path: target/*.jar
+
+    test:
+       name: Testes
+       runs-on: ubuntu-22.04
+       needs: build
+       steps:
+          - name: Checkout do código
+            uses: actions/checkout@v2
+
+    deploy:
+        name: Publicação
+        runs-on: ubuntu-22.04
+        needs: test
+        steps:
+           # Fazer checkout do código novamente (necessário para o deploy)
+           - name: Checkout code
+             uses: actions/checkout@v2
+
+           # Baixar o artefato JAR gerado no job anterior
+           - name: Download JAR artifact
+             uses: actions/download-artifact@v4
+             with:
+                name: jar-file
+
+          # Listar os artefatos baixados (para verificar o local do JAR)
+           - name: Listar artefatos baixados
+             run: ls -la
+
+          # Renomear e mover o arquivo JAR para prepará-lo para o deploy
+           - name: Renomear arquivo JAR
+             run: |
+               JAR_FILE=$(ls *.jar)
+               echo "Arquivo JAR baixado: $JAR_FILE"
+               mv $JAR_FILE usuarios-api-pipeline.jar
+
+          # Realizar o deploy no Elastic Beanstalk usando o arquivo JAR
+           - name: Fazer deploy no Elastic Beanstalk
+             uses: einaregilsson/beanstalk-deploy@v20
+             with:
+                 aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+                 aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+                 application_name: usuarios-api-tq-pipeline
+                 environment_name: Usuarios-api-tq-pipeline-env
+                 region: us-east-2
+                 deployment_package: usuarios-api-pipeline.jar
+                 version_label: ${{ github.sha }}
+
+          # Limpar artefatos após o deploy
+           - name: Limpar arquivos temporários
+             run: rm -f *.jar
