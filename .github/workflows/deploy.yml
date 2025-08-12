@@ -74,8 +74,8 @@ jobs:
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          application_name: usuarios-api
-          environment_name: Usuarios-api-env
+          application_name: usuarios-api-tq-pipeline
+          environment_name: Usuarios-api-tq-pipeline-env
           region: us-east-2
           deployment_package: usuarios-api-pipeline.jar
           version_label: ${{ github.sha }}
