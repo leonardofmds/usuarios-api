@@ -32,8 +32,8 @@ public class UsuarioService {
         //Capturando os dados do usuário
         var usuario = new Usuario();
         usuario.setNome(request.getNome());
-        usuario.setNome(request.getEmail());
-        usuario.setNome(request.getSenha());
+        usuario.setEmail(request.getEmail());
+        usuario.setSenha(request.getSenha());
 
         //Gravando no banco de dados
         var usuarioCriado = usuarioRepository.save(usuario);
